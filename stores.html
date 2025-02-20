@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Store List</title>
+    <style>
+        /* Global Styles */
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f7fa;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            flex-grow: 1;
+            margin-left: 250px;
+            padding: 40px;
+            width: 100%;
+            transition: margin-left 0.3s ease-in-out;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background-color: #2f3b52;
+            padding: 20px;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: fixed;
+            height: 100%;
+            top: 0;
+            left: 0;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .sidebar h2 {
+            margin-bottom: 40px;
+            font-size: 24px;
+        }
+
+        .sidebar a {
+            color: #ddd;
+            text-decoration: none;
+            font-size: 18px;
+            margin: 10px 0;
+            transition: color 0.3s ease;
+        }
+
+        .sidebar a:hover {
+            color: #fff;
+        }
+
+        /* Table styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .view-details-btn, .delete-btn {
+            padding: 8px 16px;
+            font-size: 14px;
+            color: white;
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .view-details-btn:hover, .delete-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .delete-btn {
+            background-color: #dc3545;
+        }
+
+        .delete-btn:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Dashboard</h2>
+        <a href="profile.html">Profile</a>
+        <a href="home.html">Home</a>
+        <a href="category.html">Category</a>
+        <a href="stores.html">Stores</a>
+        <a href="users.html">Users</a>
+    </div>
+
+    <div class="container">
+        <h1>Store List</h1>
+
+        <!-- Table for displaying store data -->
+        <table id="store-table">
+            <thead>
+                <tr>
+                    <th>Store Name</th>
+                    <th>Contact Number</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="store-body">
+                <tr>
+                    <td colspan="3">Loading store data...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Fetch store data and display it in the table
+        async function fetchStores() {
+            try {
+                const response = await fetch('https://laptop-store-9z54.onrender.com/api/stores');  // API endpoint for stores
+
+                if (response.ok) {
+                    const stores = await response.json();
+                    const storeBody = document.getElementById('store-body');
+
+                    // Check if stores are available
+                    if (stores.length > 0) {
+                        storeBody.innerHTML = stores.map(store => `
+                            <tr>
+                                <td>${store.storeName || 'N/A'}</td>
+                                <td>${store.contactNumber || 'N/A'}</td>
+                                <td>
+                                    
+                                    <button class="delete-btn" onclick="deleteStore('${store._id}')">
+                                        Delete
+                                    </button>
+                                </td>
+                            </tr>
+                        `).join('');
+                    } else {
+                        storeBody.innerHTML = `<tr><td colspan="3">No stores available.</td></tr>`;
+                    }
+                } else {
+                    document.getElementById('store-body').innerHTML = `<tr><td colspan="3">Failed to fetch stores.</td></tr>`;
+                }
+            } catch (error) {
+                console.error('Error fetching stores:', error);
+                document.getElementById('store-body').innerHTML = `<tr><td colspan="3">An error occurred while fetching store data.</td></tr>`;
+            }
+        }
+
+        // Function to handle the "View Details" button click
+        function viewDetails(storeId) {
+            // Navigate to the store details page (you can adjust this URL as needed)
+            window.location.href = `details.html?storeId=${storeId}`;
+        }
+
+        // Function to delete a store
+        async function deleteStore(storeId) {
+            if (confirm("Are you sure you want to delete this store?")) {
+                try {
+                    const response = await fetch(`http://localhost:3000/api/stores/${storeId}`, {
+                        method: 'DELETE',
+                    });
+
+                    if (response.ok) {
+                        alert("Store deleted successfully.");
+                        fetchStores();  // Refresh the store list after deletion
+                    } else {
+                        alert("Failed to delete the store.");
+                    }
+                } catch (error) {
+                    console.error('Error deleting store:', error);
+                    alert('An error occurred while deleting the store.');
+                }
+            }
+        }
+
+        // Call the function when the page loads
+        window.onload = function() {
+            fetchStores();  // Fetch and display the stores data
+        };
+    </script>
+</body>
+</html>
